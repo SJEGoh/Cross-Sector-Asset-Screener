@@ -52,8 +52,8 @@ def get_fig(tickers, day_delay):
         textposition="top center",
         marker=dict(
             size=15,
-            cmin=-5,
-            cmax = 5,
+            cmin=-3,
+            cmax = 3,
             color=all_volumes,       # Now Plotly sees the full range
             colorscale='Viridis', 
             showscale=True,
