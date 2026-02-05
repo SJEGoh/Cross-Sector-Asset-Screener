@@ -359,7 +359,7 @@ def get_extreme(data):
     return min_price, days
 
 load_dotenv()
-client = RESTClient(os.getenv("POLYGON_API_KEY"))
+client = RESTClient(os.getenv("MASSIVE_API_KEY"))
 def get_polygon_data(ticker, days_back=730):
     """
     Fetches historical data from Polygon and returns a DataFrame 
