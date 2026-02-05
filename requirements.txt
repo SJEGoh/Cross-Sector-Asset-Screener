@@ -4,3 +4,5 @@ matplotlib
 numpy
 plotly
 polygon-api-client
+dotenv
+os
