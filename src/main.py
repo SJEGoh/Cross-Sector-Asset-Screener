@@ -1,8 +1,7 @@
 import yfinance as yf
 from helper import get_dma, get_smoothed, get_volume, get_polygon_data
 import plotly.graph_objects as go
-import time
-import random
+import pandas as pd
 # Ok just make this into a giant function. Inputs: (day, universe, )
 def get_fig(tickers, day_delay):
     fig = go.Figure()
@@ -10,6 +9,7 @@ def get_fig(tickers, day_delay):
     all_y = []
     all_volumes = []
     all_labels = []
+    scanner_data = []
 
     for ticker in tickers:
         # data = yf.Ticker(ticker).history(period="2y")[["Close", "Volume"]]
@@ -17,10 +17,32 @@ def get_fig(tickers, day_delay):
         if data.empty or data.shape[0] < 100:
             continue
         
-        all_x.append(get_dma(data[["Close"]]).iloc[-1 * (day_delay + 1)])
-        all_y.append(get_smoothed(data[["Close"]])[-1 * (day_delay + 1)])
-        all_volumes.append(get_volume(data).iloc[-1 * (day_delay + 1)]) 
+        all_x.append(x_val := get_dma(data[["Close"]]).iloc[-1 * (day_delay + 1)])
+        all_y.append(y_val := get_smoothed(data[["Close"]])[-1 * (day_delay + 1)])
+        all_volumes.append(vol_val := get_volume(data).iloc[-1 * (day_delay + 1)]) 
         all_labels.append(ticker)
+
+        quadrant = "Neutral"
+        if x_val < 0 and y_val > 0:
+            quadrant = "IMPROVING (Buy Beta)"
+        elif x_val > 0 and y_val > 0:
+            quadrant = "LEADING (Hold)"
+        elif x_val > 0 and y_val < 0:
+            quadrant = "WEAKENING (Sell Vol)"
+        elif x_val < 0 and y_val < 0:
+            quadrant = "LAGGING (Avoid)"
+
+        # Geometric distance
+        strength = (x_val**2 + y_val**2)**0.5
+        scanner_data.append({
+            "Ticker": ticker,
+            "Quadrant": quadrant,
+            "Signal Strength": float(strength), # ensure float for sorting
+            "Valuation (X)": float(x_val),
+            "Momentum (Y)": float(y_val),
+            "Volume (Z)": float(vol_val)
+        })
+
     # Create ONE trace for all dots
     fig.add_trace(go.Scatter(
         x=all_x, 
@@ -88,5 +110,8 @@ def get_fig(tickers, day_delay):
             ),
         ]    
     )
+    df = pd.DataFrame(scanner_data)
+    if not df.empty:
+        df = df.sort_values(by="Signal Strength", ascending=False)
 
-    return fig
+    return fig, df

@@ -1,7 +1,11 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-import yfinance as yf
+from datetime import date, timedelta
+from polygon import RESTClient
+from dotenv import load_dotenv
+import os
+
 
 UNIVERSE = {
     # =========================
@@ -354,11 +358,8 @@ def get_extreme(data):
         days += 1
     return min_price, days
 
-from datetime import date, timedelta
-from polygon import RESTClient
-import os
-
-client = RESTClient(os.getenv("API"))
+load_dotenv()
+client = RESTClient(os.getenv("POLYGON_API_KEY"))
 def get_polygon_data(ticker, days_back=730):
     """
     Fetches historical data from Polygon and returns a DataFrame 
@@ -383,8 +384,6 @@ def get_polygon_data(ticker, days_back=730):
         if not aggs:
             return pd.DataFrame() # Return empty if no data
 
-        # 4. Convert to DataFrame
-        # Polygon returns a list of objects, we need to extract the values
         data = [
             {
                 "Date": pd.to_datetime(a.timestamp, unit="ms"),
@@ -396,10 +395,8 @@ def get_polygon_data(ticker, days_back=730):
         
         df = pd.DataFrame(data)
         
-        # 5. Format to match YFinance structure
         df.set_index("Date", inplace=True)
         
-        # Ensure columns are floats (Polygon uses precise Decimals sometimes)
         df["Close"] = df["Close"].astype(float)
         df["Volume"] = df["Volume"].astype(float)
         

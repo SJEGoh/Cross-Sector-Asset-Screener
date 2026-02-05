@@ -31,7 +31,8 @@ def main():
             "Select y axis",
             options = ["Coming soon", "Coming soon"]
         )
-    st.plotly_chart(get_fig(tickers, day_delay))
+    fig, scanner_df = get_fig(tickers, day_delay)
+    st.plotly_chart(fig)
 
 
 if __name__ == "__main__":
