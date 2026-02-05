@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from datetime import date, timedelta
-from polygon-api-client import RESTClient
+from polygon import RESTClient
 from dotenv import load_dotenv
 import os
 
