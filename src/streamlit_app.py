@@ -1,5 +1,5 @@
 import streamlit as st
-from helper import get_dataframe, get_filtered_universe, get_tickers, get_all_data
+from helper import get_dataframe, get_filtered_universe, get_tickers
 from main import get_fig
 
 
@@ -12,7 +12,6 @@ def main():
 
     filtered_df = get_filtered_universe(df)
     tickers = get_tickers(filtered_df)
-    bulk_data = get_all_data(tickers)
     c1, c2, c3 =  st.columns(3)
     with c1:
         day_delay = st.number_input(
