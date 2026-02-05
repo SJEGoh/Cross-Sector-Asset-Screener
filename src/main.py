@@ -57,8 +57,8 @@ def get_fig(tickers, day_delay):
             color=all_volumes,       # Now Plotly sees the full range
             colorscale='Viridis', 
             showscale=True,
-            colorbar=dict(title="Volume Surge (Z-Score)", tickvals=[-5, 0, 5],
-                          ticktext=["-5", "0", "5"],
+            colorbar=dict(title="Volume Surge (Z-Score)", tickvals=[-3, 0, 3],
+                          ticktext=["-3", "0", "3"],
                           tickmode="array"),
             line=dict(width=1, color='white')
         ),
