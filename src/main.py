@@ -1,11 +1,6 @@
-import streamlit as st
-import pandas as pd
 import yfinance as yf
-from helper import get_dma, get_smoothed, get_tickers, get_volume
-
+from helper import get_dma, get_smoothed, get_volume
 import plotly.graph_objects as go
-import pandas as pd
-
 # Ok just make this into a giant function. Inputs: (day, universe, )
 def get_fig(tickers, day_delay):
     fig = go.Figure()

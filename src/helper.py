@@ -257,14 +257,10 @@ def get_dma(data):
     data["100dms"] = data[["Close"]].rolling("30D").std()
 
     data["z"] = (data["Close"] - data["100dma"])/data["100dms"]
-    print(data["z"])
     return data["z"]
 
 
 def get_smoothed(data):
-    # CRITICAL CHANGE: Increased to 60. 
-    # We need 5 days (sum) + 15 days (std) + 10 days (output) = ~30 days minimum valid data.
-    # tail(20) would return NaNs for the history you requested.
     data = data.dropna().tail(30) 
     
     data["pct_change"] = data["Close"].pct_change()
@@ -273,9 +269,7 @@ def get_smoothed(data):
     q = 1
     r = 1.0
 
-    # State: [Position, Velocity]
     if data.empty:
-        # Return list of 0s if empty, matching the expected output format
         return [0] * 10
         
     x = np.array([[data["pct_change"].iloc[0]], [0.0]])
