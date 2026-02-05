@@ -1,0 +1,26 @@
+import streamlit as st
+from helper import get_dataframe, get_filtered_universe, get_tickers
+from main import get_fig
+
+
+
+def main():
+    st.title("Cross Sector Asset Screener")
+    st.set_page_config(page_title="Cross Sector Asset Screener", layout="wide")
+
+    df = get_dataframe()
+
+    filtered_df = get_filtered_universe(df)
+    tickers = get_tickers(filtered_df)
+    day_delay = st.number_input(
+        "Days ago",
+        min_value = 0,
+        max_value = 5,
+        step = 1,
+        value = "min"
+    )
+    st.plotly_chart(get_fig(tickers, day_delay))
+
+
+if __name__ == "__main__":
+    main()

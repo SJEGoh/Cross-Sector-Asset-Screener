@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import streamlit as st
 
 UNIVERSE = {
     # =========================
@@ -191,12 +192,12 @@ UNIVERSE = {
     "ETH":  {"asset_class": "crypto_etf", "group": "spot_eth_etf", "region": "US", "sector": None, "name": "Grayscale Ethereum Mini Trust"},
 }
 
-def to_dataframe(universe: dict):
+def get_dataframe():
     """
     Convert UNIVERSE dict -> pandas DataFrame for easy filtering/grouping.
     """
     rows = []
-    for tkr, meta in universe.items():
+    for tkr, meta in UNIVERSE.items():
         row = {"ticker": tkr}
         row.update(meta)
         rows.append(row)
@@ -204,15 +205,48 @@ def to_dataframe(universe: dict):
     cols = ["ticker", "asset_class", "group", "region", "sector", "name"]
     return df[cols].sort_values(["asset_class", "group", "region", "sector", "ticker"], na_position="last").reset_index(drop=True)
 
+def get_filtered_universe(df):
+    temp_df = df.copy()
 
-def get_tickers():
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        region = st.multiselect("Choose Region", temp_df["region"].unique().tolist())
+        if region:
+            temp_df = temp_df[temp_df["region"].isin(region)]
+
+        asset_class = st.multiselect("Choose Asset Class", temp_df["asset_class"].unique().tolist())
+        if asset_class:
+            temp_df = temp_df[temp_df["asset_class"].isin(asset_class)]
+
+    with c2:
+        group = st.multiselect("Choose Group", temp_df["group"].unique().tolist())
+        if group:
+            temp_df = temp_df[temp_df["group"].isin(group)]
+
+        sector = st.multiselect("Choose Sector", temp_df["sector"].unique().tolist())
+        if sector:
+            temp_df = temp_df[temp_df["sector"].isin(sector)]
+
+    with c3:
+        name = st.multiselect("Select Name", temp_df["name"].unique().tolist())
+        if name:
+            temp_df = temp_df[temp_df["name"].isin(name)]
+
+        ticker = st.multiselect("Select Tickers", temp_df["ticker"].unique().tolist())
+        if ticker:
+            temp_df = temp_df[temp_df["ticker"].isin(ticker)]
+
+    return temp_df
+
+def get_tickers(universe):
     """
     Return a sorted list of tickers for yfinance download.
     """
-    return sorted(UNIVERSE.keys())
+    return sorted(universe["ticker"])
 
 def get_data():
-    df_universe = to_dataframe(UNIVERSE)
+    df_universe = get_dataframe()
     tickers = get_tickers(UNIVERSE)
     print(df_universe.head())
     print(len(tickers), tickers[:20])
@@ -223,12 +257,16 @@ def get_dma(data):
     data["100dms"] = data[["Close"]].rolling("30D").std()
 
     data["z"] = (data["Close"] - data["100dma"])/data["100dms"]
-
+    print(data["z"])
     return data["z"]
 
 
 def get_smoothed(data):
-    data = data.dropna().tail(20)
+    # CRITICAL CHANGE: Increased to 60. 
+    # We need 5 days (sum) + 15 days (std) + 10 days (output) = ~30 days minimum valid data.
+    # tail(20) would return NaNs for the history you requested.
+    data = data.dropna().tail(30) 
+    
     data["pct_change"] = data["Close"].pct_change()
     data = data.dropna()
     
@@ -237,7 +275,9 @@ def get_smoothed(data):
 
     # State: [Position, Velocity]
     if data.empty:
-        return [0]
+        # Return list of 0s if empty, matching the expected output format
+        return [0] * 10
+        
     x = np.array([[data["pct_change"].iloc[0]], [0.0]])
     P = np.eye(2)
     F = np.array([[1, 1.0],
@@ -246,7 +286,7 @@ def get_smoothed(data):
     Q = np.eye(2) * q
     R = np.array([[r]])
     
-    smoothed_velocities = []
+    smoothed_innovations = []
     
     for z in data["pct_change"]:
         # Prediction
@@ -260,13 +300,20 @@ def get_smoothed(data):
         x = x + K @ y
         P = (np.eye(2) - K @ H) @ P
         
-        smoothed_velocities.append(y[0][0])
-    current_sum = np.sum(smoothed_velocities[-5:])
-    rolling_sums = pd.Series(smoothed_velocities).rolling(window=5).sum()
-    stdev_of_sums = rolling_sums.rolling(window=15).std().iloc[-1]
+        # We collect the innovation 'y', as per your logic
+        smoothed_innovations.append(y[0][0])
+    
+    # Convert to Series for vectorized rolling math
+    innovations_series = pd.Series(smoothed_innovations)
+    
+    # 1. Rolling 5-day Sum of Innovations
+    rolling_sums = innovations_series.rolling(window=5).sum()
+    
+    rolling_std = rolling_sums.rolling(window=15).std()
 
-    return current_sum/stdev_of_sums
+    z_scores = rolling_sums / rolling_std.replace(0, 1.0)
 
+    return z_scores.fillna(0).tail(10).tolist()
 
 def get_volume(data):
     data['vol_ma'] = data['Volume'].rolling(20).mean()
