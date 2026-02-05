@@ -13,13 +13,13 @@ Jinja2==3.1.6
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 MarkupSafe==3.0.3
+massive==2.1.0
 narwhals==2.16.0
 numpy==2.4.2
 packaging==26.0
 pandas==2.3.3
 pillow==12.1.0
 plotly==6.5.2
-polygon-api-client==1.16.3
 protobuf==6.33.5
 pyarrow==23.0.0
 pydeck==0.9.1
