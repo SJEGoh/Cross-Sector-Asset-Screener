@@ -20,7 +20,6 @@ def get_fig(tickers, day_delay):
         all_y.append(get_smoothed(data[["Close"]])[-1 * (day_delay + 1)])
         all_volumes.append(get_volume(data).iloc[-1 * (day_delay + 1)]) 
         all_labels.append(ticker)
-        time.sleep(random.uniform(0.05, 0.1))
     # Create ONE trace for all dots
     fig.add_trace(go.Scatter(
         x=all_x, 
