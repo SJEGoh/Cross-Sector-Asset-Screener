@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+import yfinance as yf
 
 UNIVERSE = {
     # =========================
@@ -354,6 +355,12 @@ def get_extreme(data):
     return min_price, days
 
 
+@st.cache_data(ttl=3600) # 2. Cache the result so you don't re-download on every click
+def get_all_data(ticker_list):
+    # This downloads everything in a single request
+    # group_by='ticker' makes the DataFrame easy to split later
+    data = yf.download(ticker_list, period="2y", group_by='ticker', auto_adjust=True)
+    return data
 
 if __name__ == "__main__":
     get_data()
