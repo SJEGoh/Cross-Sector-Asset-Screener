@@ -354,13 +354,60 @@ def get_extreme(data):
         days += 1
     return min_price, days
 
+from datetime import date, timedelta
+from polygon import RESTClient
+import os
 
-@st.cache_data(ttl=3600) # 2. Cache the result so you don't re-download on every click
-def get_all_data(ticker_list):
-    # This downloads everything in a single request
-    # group_by='ticker' makes the DataFrame easy to split later
-    data = yf.download(ticker_list, period="2y", group_by='ticker', auto_adjust=True)
-    return data
+client = RESTClient(os.getenv("API"))
+def get_polygon_data(ticker, days_back=730):
+    """
+    Fetches historical data from Polygon and returns a DataFrame 
+    structured EXACTLY like yfinance (Date Index, Close, Volume).
+    """
+    # 1. Define Date Range
+    to_date = date.today()
+    from_date = to_date - timedelta(days=days_back)
+
+    try:
+        # 2. Fetch Aggregates (Bars)
+        # 1 = multiplier, "day" = timespan
+        aggs = client.get_aggs(
+            ticker=ticker, 
+            multiplier=1, 
+            timespan="day", 
+            from_=from_date, 
+            to=to_date
+        )
+        
+        # 3. Handle Empty Responses
+        if not aggs:
+            return pd.DataFrame() # Return empty if no data
+
+        # 4. Convert to DataFrame
+        # Polygon returns a list of objects, we need to extract the values
+        data = [
+            {
+                "Date": pd.to_datetime(a.timestamp, unit="ms"),
+                "Close": a.close,
+                "Volume": a.volume
+            } 
+            for a in aggs
+        ]
+        
+        df = pd.DataFrame(data)
+        
+        # 5. Format to match YFinance structure
+        df.set_index("Date", inplace=True)
+        
+        # Ensure columns are floats (Polygon uses precise Decimals sometimes)
+        df["Close"] = df["Close"].astype(float)
+        df["Volume"] = df["Volume"].astype(float)
+        
+        return df[["Close", "Volume"]]
+
+    except Exception as e:
+        print(f"Error fetching {ticker}: {e}")
+        return pd.DataFrame()
 
 if __name__ == "__main__":
     get_data()

@@ -1,5 +1,5 @@
 import yfinance as yf
-from helper import get_dma, get_smoothed, get_volume
+from helper import get_dma, get_smoothed, get_volume, get_polygon_data
 import plotly.graph_objects as go
 import time
 import random
@@ -12,7 +12,8 @@ def get_fig(tickers, day_delay):
     all_labels = []
 
     for ticker in tickers:
-        data = yf.Ticker(ticker).history(period="2y")[["Close", "Volume"]]
+        # data = yf.Ticker(ticker).history(period="2y")[["Close", "Volume"]]
+        data = get_polygon_data(ticker, days_back=730)
         if data.empty or data.shape[0] < 100:
             continue
         
