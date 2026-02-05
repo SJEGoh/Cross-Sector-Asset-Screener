@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from datetime import date, timedelta
-from massive import RESTClient
+from polygon import RESTClient
 from dotenv import load_dotenv
 import os
 
@@ -359,7 +359,7 @@ def get_extreme(data):
     return min_price, days
 
 load_dotenv()
-client = RESTClient(st.secrets["MASSIVE_API_KEY"])
+client = RESTClient(st.secrets["POLYGON_API_KEY"])
 def get_polygon_data(ticker, days_back=730):
     """
     Fetches historical data from Polygon and returns a DataFrame 
