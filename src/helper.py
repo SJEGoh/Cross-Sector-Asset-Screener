@@ -255,19 +255,19 @@ def get_data():
 # For dashboard
 def get_dma(data):
     data["100dma"] = data[["Close"]].rolling("30D").mean()
-    data["100dms"] = data[["Close"]].rolling("30D").std()
+    data["100dms"] = data[["Close"]].rolling("90D").std()
 
     data["z"] = (data["Close"] - data["100dma"])/data["100dms"]
     return data["z"]
 
 
 def get_smoothed(data):
-    data = data.dropna().tail(30) 
+    data = data.dropna().tail(75) 
     
     data["pct_change"] = data["Close"].pct_change()
     data = data.dropna()
     
-    q = 1
+    q = 0.05
     r = 1.0
 
     if data.empty:
@@ -304,7 +304,7 @@ def get_smoothed(data):
     # 1. Rolling 5-day Sum of Innovations
     rolling_sums = innovations_series.rolling(window=5).sum()
     
-    rolling_std = rolling_sums.rolling(window=15).std()
+    rolling_std = rolling_sums.rolling(window=63).std()
 
     z_scores = rolling_sums / rolling_std.replace(0, 1.0)
 
