@@ -1,4 +1,3 @@
-import yfinance as yf
 from helper import get_dma, get_smoothed, get_volume, get_polygon_data
 import plotly.graph_objects as go
 import pandas as pd

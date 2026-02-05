@@ -1,6 +1,6 @@
-yfinance
 pandas
 statsmodels
 matplotlib
 numpy
 plotly
+polygon
