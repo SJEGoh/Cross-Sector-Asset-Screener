@@ -54,6 +54,7 @@ def get_fig(tickers, day_delay):
 
         # Geometric distance
         strength = (x_val**2 + y_val**2)**0.5
+        # add different heuristic for cross-over opportunities
         scanner_data.append({
             "Ticker": ticker,
             "Quadrant": quadrant,

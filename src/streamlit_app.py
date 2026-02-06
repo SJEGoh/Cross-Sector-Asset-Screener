@@ -35,6 +35,44 @@ def main():
     fig, scanner_df = get_fig(tickers, day_delay)
     st.plotly_chart(fig)
 
+    if not scanner_df.empty:
+        st.divider()  # Adds a visual line separator
+        st.subheader("Top Signals")
+
+        leading = scanner_df[scanner_df["Quadrant"].str.contains("LEADING")]
+        lagging = scanner_df[scanner_df["Quadrant"].str.contains("LAGGING")]
+        improving = scanner_df[scanner_df["Quadrant"].str.contains("IMPROVING")]
+        weakening = scanner_df[scanner_df["Quadrant"].str.contains("WEAKENING")]
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.success("🚀 Top Leading")
+            st.dataframe(
+                leading.head(10)[["Ticker", "Signal Strength", "Volume (Z)"]]
+                .style.background_gradient(subset=["Signal Strength"], cmap="Greens"),
+                hide_index=True,
+                use_container_width=True
+            )
+
+        with col2:
+            st.error("🛑 Top Lagging")
+            st.dataframe(
+                lagging.head(10)[["Ticker", "Signal Strength", "Volume (Z)"]]
+                .style.background_gradient(subset=["Signal Strength"], cmap="Reds"),
+                hide_index=True,
+                use_container_width=True
+            )
+
+        # 3. (Optional) Show the Turning Points (Buy/Sell signals) below
+        with st.expander("Show Turning Points (Improving vs Weakening)"):
+            c3, c4 = st.columns(2)
+            with c3:
+                st.info("✨ Improving (Need to customize heuristic for signal strength)")
+                st.dataframe(improving.head(10)[["Ticker", "Signal Strength", "Volume (Z)"]], hide_index=True, width = "stretch")
+            with c4:
+                st.warning("⚠️ Weakening")
+                st.dataframe(weakening.head(10)[["Ticker", "Signal Strength", "Volume (Z)"]], hide_index=True, width = "stretch")
 
 if __name__ == "__main__":
     main()
