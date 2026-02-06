@@ -1,7 +1,26 @@
 from helper import get_dma, get_smoothed, get_volume, get_polygon_data
 import plotly.graph_objects as go
 import pandas as pd
+import streamlit as st
 # Ok just make this into a giant function. Inputs: (day, universe, )
+
+@st.cache_data(ttl="1d")
+def get_master_data(tickers):
+    master_dict = {}
+
+    
+    for i, ticker in enumerate(tickers):
+        try:
+            df = get_polygon_data(ticker, days_back=730)
+            
+            if not df.empty and len(df) > 100:
+                master_dict[ticker] = df
+                
+        except Exception as e:
+            print(f"Skipping {ticker}: {e}")
+            
+    return master_dict
+
 def get_fig(tickers, day_delay):
     fig = go.Figure()
     all_x = []
@@ -9,13 +28,15 @@ def get_fig(tickers, day_delay):
     all_volumes = []
     all_labels = []
     scanner_data = []
-
+    master_dict = get_master_data(tickers)
     for ticker in tickers:
-        # data = yf.Ticker(ticker).history(period="2y")[["Close", "Volume"]]
-        data = get_polygon_data(ticker, days_back=730)
+        try:
+            data = master_dict[ticker]
+        except:
+            print(f"Skipping {ticker}")
+            continue
         if data.empty or data.shape[0] < 100:
             continue
-        
         all_x.append(x_val := get_dma(data[["Close"]]).iloc[-1 * (day_delay + 1)])
         all_y.append(y_val := get_smoothed(data[["Close"]])[-1 * (day_delay + 1)])
         all_volumes.append(vol_val := get_volume(data).iloc[-1 * (day_delay + 1)]) 

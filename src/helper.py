@@ -6,7 +6,6 @@ from polygon import RESTClient
 from dotenv import load_dotenv
 import os
 
-
 UNIVERSE = {
     # =========================
     # EQUITIES — Broad beta / geography
@@ -41,6 +40,7 @@ UNIVERSE = {
     "XLB":  {"asset_class": "equity", "group": "sector", "region": "US", "sector": "Materials", "name": "Materials Select Sector"},
     "XLRE": {"asset_class": "equity", "group": "sector", "region": "US", "sector": "Real Estate", "name": "Real Estate Select Sector"},
     "XLU":  {"asset_class": "equity", "group": "sector", "region": "US", "sector": "Utilities", "name": "Utilities Select Sector"},
+
     # =========================
     # EQUITIES — Vanguard sector equivalents (optional 2nd family)
     # =========================
@@ -70,6 +70,7 @@ UNIVERSE = {
     "RSP":  {"asset_class": "equity", "group": "style",  "region": "US", "sector": None, "name": "S&P 500 Equal Weight"},
     "VYM":  {"asset_class": "equity", "group": "style",  "region": "US", "sector": None, "name": "High Dividend"},
     "SCHD": {"asset_class": "equity", "group": "style",  "region": "US", "sector": None, "name": "Dividend (Quality tilt)"},
+
     # =========================
     # EQUITIES — country / single-market ETFs
     # =========================
@@ -100,7 +101,7 @@ UNIVERSE = {
     "TUR":  {"asset_class": "equity", "group": "country", "region": "Turkey", "sector": None, "name": "Turkey"},
     "GREK": {"asset_class": "equity", "group": "country", "region": "Greece", "sector": None, "name": "Greece"},
     "VNM":  {"asset_class": "equity", "group": "country", "region": "Vietnam", "sector": None, "name": "Vietnam"},
-    "RSX":  {"asset_class": "equity", "group": "country", "region": "Russia", "sector": None, "name": "Russia (check tradability/liquidity)"},
+    
     # =========================
     # BONDS — core + curve + credit
     # =========================
@@ -145,6 +146,7 @@ UNIVERSE = {
     # =========================
     # COMMODITIES — futures tickers on Yahoo (pure price series)
     # =========================
+    # WARNING: Polygon requires specific subscriptions for these futures
     "CL=F": {"asset_class": "commodity", "group": "futures", "region": "Global", "sector": "WTI", "name": "WTI Crude (futures)"},
     "BZ=F": {"asset_class": "commodity", "group": "futures", "region": "Global", "sector": "Brent", "name": "Brent Crude (futures)"},
     "NG=F": {"asset_class": "commodity", "group": "futures", "region": "Global", "sector": "Natural Gas", "name": "Natural Gas (futures)"},
@@ -159,20 +161,20 @@ UNIVERSE = {
     "CT=F": {"asset_class": "commodity", "group": "futures", "region": "Global", "sector": "Cotton", "name": "Cotton (futures)"},
 
     # =========================
-    # CRYPTO — spot (Yahoo format)
+    # CRYPTO — spot (Polygon format)
     # =========================
-    "BTC-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Bitcoin"},
-    "ETH-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Ethereum"},
-    "SOL-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Solana"},
-    "BNB-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "BNB"},
-    "XRP-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "XRP"},
-    "ADA-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Cardano"},
-    "DOGE-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Dogecoin"},
-    "AVAX-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Avalanche"},
-    "LINK-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Chainlink"},
-    "DOT-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Polkadot"},
-    "MATIC-USD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Polygon (may vary by feed)"},
-    "TOTAL-USD": {"asset_class": "crypto", "group": "macro", "region": "Global", "sector": None, "name": "Total crypto market cap (availability varies)"},
+    "X:BTCUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Bitcoin"},
+    "X:ETHUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Ethereum"},
+    "X:SOLUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Solana"},
+    "X:BNBUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "BNB"},
+    "X:XRPUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "XRP"},
+    "X:ADAUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Cardano"},
+    "X:DOGEUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Dogecoin"},
+    "X:AVAXUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Avalanche"},
+    "X:LINKUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Chainlink"},
+    "X:DOTUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Polkadot"},
+    "X:MATICUSD": {"asset_class": "crypto", "group": "spot", "region": "Global", "sector": None, "name": "Polygon (may vary by feed)"},
+    
     # =========================
     # CRYPTO — ETFs (optional: tradfi flow lens)
     # =========================
