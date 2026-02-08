@@ -88,86 +88,83 @@ def main():
             close_sell_op = st.selectbox("Operator", [">", "<"], key="cs_op")
             close_sell_threshold = st.number_input("Threshold", value=0.0, key="cs_val")
         
+# --- EXECUTION LOGIC ---
     st.divider()
-    
     if st.button("🚀 Run Backtest", type="primary", use_container_width=True):
         
-        # 1. DATA FETCHING
-        with st.status("Running Simulation...", expanded=True) as status:
-            status.write("Fetching market data...")
+        # 1. FETCH DATA
+        with st.status("Fetching Data...", expanded=True) as status:
             df = get_polygon_data(ticker, days_back=730)
-            
             if df.empty:
-                status.error(f"No data found for {ticker}")
+                status.error("No data found.")
                 st.stop()
             
-            # 2. INDICATOR CALCULATION
-            status.write("Calculating signals...")
+            # 2. CALCULATE INDICATORS
+            status.write("Calculating indicators...")
             
-            # Helper to calculate and extract series safely
-            def get_series(ind_name, bench_ticker):
-                try:
-                    if ind_name in REQUIRES_BENCHMARK:
-                        if not bench_ticker: return None
-                        b_df = get_polygon_data(bench_ticker, days_back=1000)
-                        b_data = b_df.reindex(df.index).ffill()
-                        res = get_indic(ind_name)(df[["Close"]], b_data[["Close"]], 20)
-                    else:
-                        res = get_indic(ind_name)(df[["Close"]], 20)
-                    
-                    # Handle if it returns DataFrame or Series
+            # Helper to safely get indicator data
+            def get_signal_data(indic, bench):
+                if indic in REQUIRES_BENCHMARK:
+                    if not bench: return None
+                    bench_df = get_polygon_data(bench, days_back=1000)
+                    # Align dates
+                    aligned_bench = bench_df.reindex(df.index).ffill()
+                    return get_indic(indic)(df[["Close"]], aligned_bench[["Close"]], 20)
+                return get_indic(indic)(df[["Close"]], 20)
+
+            # Calculate the 4 columns needed
+            try:
+                # Handle Series vs DataFrame return types
+                def extract_series(res):
                     if isinstance(res, pd.DataFrame): return res.iloc[:, -1]
                     return res
-                except Exception as e:
-                    return None
 
-            # Calculate the 4 Control Signals
-            df['B_Entry'] = get_series(buy_indic, buy_bench if 'buy_bench' in locals() else None)
-            df['B_Exit'] = get_series(close_buy_indic, close_buy_bench if 'close_buy_bench' in locals() else None)
-            df['S_Entry'] = get_series(sell_indic, sell_bench if 'sell_bench' in locals() else None)
-            df['S_Exit'] = get_series(close_sell_indic, close_sell_bench if 'close_sell_bench' in locals() else None)
-
-            # Drop NaNs to start simulation clean
-            df = df.dropna()
-            
-            if df.empty:
-                status.error("❌ Data Wipeout: Indicators generated NaNs (likely missing benchmark or short history).")
+                df['Buy_Ind'] = extract_series(get_signal_data(buy_indic, buy_bench if 'buy_bench' in locals() else None))
+                df['Exit_Buy_Ind'] = extract_series(get_signal_data(close_buy_indic, close_buy_bench if 'close_buy_bench' in locals() else None))
+                
+                df['Sell_Ind'] = extract_series(get_signal_data(sell_indic, sell_bench if 'sell_bench' in locals() else None))
+                df['Exit_Sell_Ind'] = extract_series(get_signal_data(close_sell_indic, close_sell_bench if 'close_sell_bench' in locals() else None))
+                df = df.iloc[-length:]
+                print(df)
+                status.write(f"Simulation running on {length} days.")
+                status.update(label="Complete", state="complete", expanded=False)
+                
+            except Exception as e:
+                status.error(f"Calculation Error: {e}")
                 st.stop()
-                
-            status.write(f"Simulating {len(df)} trading days...")
 
-            # 3. SIMULATION LOOP
-            port = SignalPortfolio(initial_cash=10000)
+        # 3. RUN SIMULATION LOOP
+        port = SignalPortfolio(initial_cash=10000)
+        equity = []
+        
+        # Helper: Logic Check
+        check = lambda val, op, thresh: (val > thresh) if op == ">" else (val < thresh)
+
+        for i in range(len(df)):
+            row = df.iloc[i]
+            price = row['Close']
+            sig = None # Default to Hold
+            date = df.index[i]
+            # CURRENT STATE
+            pos = port.position
             
-            # Logic Lambda: (Value > Threshold) or (Value < Threshold)
-            check = lambda val, op, thresh: (val > thresh) if op == ">" else (val < thresh)
+            # LOGIC TREE
+            if pos > 0: # Long
+                if check(row['Exit_Buy_Ind'], close_buy_op, close_buy_threshold):
+                    sig = 0 # Close
             
-            for i in range(len(df)):
-                row = df.iloc[i]
-                price = row['Close']
-                date = df.index[i]  # Capture Date
-                
-                # Signal Logic
-                sig = None # Default: Hold/None
-                
-                # Current Position
-                pos = port.position
-                
-                if pos > 0: # LONG
-                    if check(row['B_Exit'], close_buy_op, close_buy_threshold): sig = 0
-                
-                elif pos < 0: # SHORT
-                    if check(row['S_Exit'], close_sell_op, close_sell_threshold): sig = 0
+            elif pos < 0: # Short
+                if check(row['Exit_Sell_Ind'], close_sell_op, close_sell_threshold):
+                    sig = 0 # Close
                     
-                else: # FLAT
-                    if check(row['B_Entry'], buy_op, buy_threshold): sig = 1
-                    elif check(row['S_Entry'], sell_op, sell_threshold): sig = -1
-                
-                # Update Portfolio (PASS THE DATE)
-                port.update(sig, price, date)
-                
-            status.update(label="Backtest Complete", state="complete", expanded=False)
-
+            else: # Flat
+                if check(row['Buy_Ind'], buy_op, buy_threshold):
+                    sig = 1 # Long
+                elif check(row['Sell_Ind'], sell_op, sell_threshold):
+                    sig = -1 # Short
+            
+            equity.append(port.equity)
+            port.update(sig, price, date)
         # 4. RESULTS PROCESSING
         # Extract history from the class
         res_df = pd.DataFrame(port.history)
@@ -181,13 +178,6 @@ def main():
         # Calculate Metrics
         final_equity = res_df['Equity'].iloc[-1]
         total_ret = (final_equity / 10000) - 1
-        
-        # Sharpe Ratio (Annualized)
-        daily_ret = res_df['Equity'].pct_change().dropna()
-        if daily_ret.std() > 0:
-            sharpe = (daily_ret.mean() / daily_ret.std()) * (252**0.5)
-        else:
-            sharpe = 0.0
         
         # Max Drawdown
         roll_max = res_df['Equity'].cummax()
@@ -217,7 +207,7 @@ def main():
         # --- DISPLAY ---
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Total Return", f"{total_ret:.2%}")
-        m2.metric("Sharpe Ratio", f"{sharpe:.2f}")
+        m2.metric("Final Equity", f"${final_equity:,.2f}")
         m3.metric("Max Drawdown", f"{max_dd:.2%}")
         m4.metric("Win Rate", f"{win_rate:.0%} ({len(trades)} trades)")
         
@@ -233,6 +223,5 @@ def main():
             hovermode="x unified"
         )
         st.plotly_chart(fig, use_container_width=True)
-
 if __name__ == "__main__":
     main()
