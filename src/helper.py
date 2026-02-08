@@ -199,6 +199,22 @@ UNIVERSE = {
     "ETH":  {"asset_class": "crypto_etf", "group": "spot_eth_etf", "region": "US", "sector": None, "name": "Grayscale Ethereum Mini Trust"},
 }
 
+RANGES = {
+    # First order
+    "DMA": 3,
+    "First Order Kalman": 3,
+    "Kalman Innovation": 3,
+    "Percentage Retracement": 1,
+
+    # Second order
+    "Second Order Kalman": 3,
+    "Second Order Percentage Retracement": 0.5,
+    "Second Order DMA": 3,
+    "Lag/Lead Days": 20,
+    "Rolling Alpha": 1,
+    "Lag/Lead Corr": 1
+}
+
 def get_dataframe():
     """
     Convert UNIVERSE dict -> pandas DataFrame for easy filtering/grouping.
@@ -349,6 +365,9 @@ def get_polygon_data(ticker, days_back=730):
     except Exception as e:
         print(f"Error fetching {ticker}: {e}")
         return pd.DataFrame()
+
+def get_range(indic):
+    return RANGES[indic]
 
 if __name__ == "__main__":
     get_data()

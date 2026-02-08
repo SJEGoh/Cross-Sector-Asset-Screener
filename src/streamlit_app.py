@@ -1,5 +1,5 @@
 import streamlit as st
-from helper import get_dataframe, get_filtered_universe, get_tickers
+from helper import get_dataframe, get_filtered_universe, get_tickers, get_range
 from main import get_fig
 
 
@@ -24,6 +24,9 @@ def main():
             )
         
         indics = []
+        periods = []
+        bench_x = None
+        bench_y = None
         with c2:
             sc1, sc2 = st.columns(2)
             with sc1:
@@ -37,9 +40,14 @@ def main():
             with sc2:
                 x_axis = st.selectbox(
                     "Select x axis",
-                    options = ["DMA", "Kalman Innovation"]
+                    options = ["DMA", "Kalman Innovation", "Percentage Retracement", "Second Order Percentage Retracement",
+                    "Second Order DMA", "Lag/Lead Days", "Rolling Alpha", "Lag/Lead Corr"]
                 )
-        indics.append({x_axis: x_period})
+                if x_axis == "Lag/Lead Days" or x_axis == "Rolling Alpha" or x_axis == "Lag/Lead Corr":
+                    bench_x = st.multiselect("Select x Benchmark", df["ticker"].unique().tolist())
+                    st.write("Note: Using this may take a while")
+        indics.append(x_axis)
+        periods.append(x_period)
         with c3:
             sc1, sc2 = st.columns(2)
             with sc1:
@@ -53,10 +61,18 @@ def main():
             with sc2:
                 y_axis = st.selectbox(
                     "Select y axis",
-                    options = ["DMA", "Kalman Innovation"]
+                    options = ["DMA", "Kalman Innovation", "Percentage Retracement", "Second Order Percentage Retracement",
+                    "Second Order DMA", "Lag/Lead Days", "Rolling Alpha", "Lag/Lead Corr"]
                 )
-        indics.append({y_axis: y_period})
-    fig, scanner_df = get_fig(tickers, day_delay, indics)
+                if y_axis == "Lag/Lead Days" or y_axis == "Rolling Alpha" or y_axis == "Lag/Lead Corr":
+                    bench_y = st.multiselect("Select y Benchmark", df["ticker"].unique().tolist())
+                    st.write("Note: Using this may take a while")
+        indics.append(y_axis)
+        periods.append(y_period)
+    try:
+        fig, scanner_df = get_fig(tickers, day_delay, indics, periods, [get_range(x_axis) if not (bench_x == "Lag/Lead Days") else periods[0], get_range(y_axis) if not (bench_y == "Lag/Lead Days") else periods[1]], bench_x, bench_y)
+    except TypeError:
+        return
     st.plotly_chart(fig)
 
     if not scanner_df.empty:
