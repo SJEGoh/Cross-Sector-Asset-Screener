@@ -22,17 +22,41 @@ def main():
                 step = 1,
                 value = "min"
             )
+        
+        indics = []
         with c2:
-            x_axis = st.selectbox(
-                "Select x axis",
-                options = ["Coming soon", "Coming soon"]
-            )
+            sc1, sc2 = st.columns(2)
+            with sc1:
+                x_period = st.number_input(
+                    "x Time Period",
+                    min_value = 1,
+                    max_value = 252,
+                    step = 1,
+                    value = 5
+                )
+            with sc2:
+                x_axis = st.selectbox(
+                    "Select x axis",
+                    options = ["DMA", "Kalman Innovation"]
+                )
+        indics.append({x_axis: x_period})
         with c3:
-            y_axis = st.selectbox(
-                "Select y axis",
-                options = ["Coming soon", "Coming soon"]
-            )
-    fig, scanner_df = get_fig(tickers, day_delay)
+            sc1, sc2 = st.columns(2)
+            with sc1:
+                y_period = st.number_input(
+                    "y Time Period",
+                    min_value = 1,
+                    max_value = 252,
+                    step = 1,
+                    value = 20
+                )
+            with sc2:
+                y_axis = st.selectbox(
+                    "Select y axis",
+                    options = ["DMA", "Kalman Innovation"]
+                )
+        indics.append({y_axis: y_period})
+    fig, scanner_df = get_fig(tickers, day_delay, indics)
     st.plotly_chart(fig)
 
     if not scanner_df.empty:
@@ -52,7 +76,7 @@ def main():
                 leading.head(10)[["Ticker", "Signal Strength", "Volume (Z)"]]
                 .style.background_gradient(subset=["Signal Strength"], cmap="Greens"),
                 hide_index=True,
-                use_container_width=True
+                width="stretch"
             )
 
         with col2:
@@ -61,7 +85,7 @@ def main():
                 lagging.head(10)[["Ticker", "Signal Strength", "Volume (Z)"]]
                 .style.background_gradient(subset=["Signal Strength"], cmap="Reds"),
                 hide_index=True,
-                use_container_width=True
+                width="stretch"
             )
 
         # 3. (Optional) Show the Turning Points (Buy/Sell signals) below

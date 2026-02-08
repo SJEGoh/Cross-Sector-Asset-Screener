@@ -258,64 +258,6 @@ def get_data():
     print(df_universe.head())
     print(len(tickers), tickers[:20])
 
-# For dashboard
-def get_dma(data):
-    data["100dma"] = data[["Close"]].rolling("30D").mean()
-    data["100dms"] = data[["Close"]].rolling("90D").std()
-
-    data["z"] = (data["Close"] - data["100dma"])/data["100dms"]
-    return data["z"]
-
-
-def get_smoothed(data):
-    data = data.dropna().tail(75) 
-    
-    data["pct_change"] = data["Close"].pct_change()
-    data = data.dropna()
-    
-    q = 0.05
-    r = 1.0
-
-    if data.empty:
-        return [0] * 10
-        
-    x = np.array([[data["pct_change"].iloc[0]], [0.0]])
-    P = np.eye(2)
-    F = np.array([[1, 1.0],
-                  [0, 1]])
-    H = np.array([[1, 0]])
-    Q = np.eye(2) * q
-    R = np.array([[r]])
-    
-    smoothed_innovations = []
-    
-    for z in data["pct_change"]:
-        # Prediction
-        x = F @ x
-        P = F @ P @ F.T + Q
-        
-        # Update
-        y = z - (H @ x) # Innovation
-        S = H @ P @ H.T + R
-        K = P @ H.T @ np.linalg.inv(S)
-        x = x + K @ y
-        P = (np.eye(2) - K @ H) @ P
-        
-        # We collect the innovation 'y', as per your logic
-        smoothed_innovations.append(y[0][0])
-    
-    # Convert to Series for vectorized rolling math
-    innovations_series = pd.Series(smoothed_innovations)
-    
-    # 1. Rolling 5-day Sum of Innovations
-    rolling_sums = innovations_series.rolling(window=5).sum()
-    
-    rolling_std = rolling_sums.rolling(window=63).std()
-
-    z_scores = rolling_sums / rolling_std.replace(0, 1.0)
-
-    return z_scores.fillna(0).tail(10).tolist()
-
 def get_volume(data):
     data['vol_ma'] = data['Volume'].rolling(20).mean()
     data['vol_std'] = data['Volume'].rolling(20).std()

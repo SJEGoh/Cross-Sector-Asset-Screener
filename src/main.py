@@ -1,4 +1,5 @@
-from helper import get_dma, get_smoothed, get_volume, get_polygon_data
+from helper import get_volume, get_polygon_data
+from features import get_indic
 import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
@@ -21,7 +22,7 @@ def get_master_data(tickers):
             
     return master_dict
 
-def get_fig(tickers, day_delay):
+def get_fig(tickers, day_delay, indics):
     fig = go.Figure()
     all_x = []
     all_y = []
@@ -37,8 +38,13 @@ def get_fig(tickers, day_delay):
             continue
         if data.empty or data.shape[0] < 100:
             continue
-        all_x.append(x_val := get_dma(data[["Close"]]).iloc[-1 * (day_delay + 1)])
-        all_y.append(y_val := get_smoothed(data[["Close"]])[-1 * (day_delay + 1)])
+
+        # Definitely a better way to do this but eh
+        y = list(indics.pop().items())[0]
+        x = list(indics.pop().items())[0]
+
+        all_x.append(x_val := get_indic(y[0])(data[["Close"]], y[1]).iloc[-1 * (day_delay + 1)])
+        all_y.append(y_val := get_indic(x[0])(data[["Close"]], x[1])[-1 * (day_delay + 1)])
         all_volumes.append(vol_val := get_volume(data).iloc[-1 * (day_delay + 1)]) 
         all_labels.append(ticker)
 
