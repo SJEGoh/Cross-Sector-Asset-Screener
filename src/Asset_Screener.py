@@ -1,5 +1,5 @@
 import streamlit as st
-from helper import get_dataframe, get_filtered_universe, get_tickers, get_range
+from helper import get_dataframe, get_filtered_universe, get_tickers, get_range, rich, poor
 from main import get_fig
 
 
@@ -40,7 +40,7 @@ def main():
             with sc2:
                 x_axis = st.selectbox(
                     "Select x axis",
-                    options = ["DMA", "Kalman Innovation", "Percentage Retracement", "Second Order Percentage Retracement",
+                    options = ["DMA", "Kalman Innovation", "First Order Kalman", "Second Order Kalman", "Percentage Retracement", "Second Order Percentage Retracement",
                     "Second Order DMA", "Lag/Lead Days", "Rolling Alpha", "Lag/Lead Corr"]
                 )
                 if x_axis == "Lag/Lead Days" or x_axis == "Rolling Alpha" or x_axis == "Lag/Lead Corr":
@@ -61,7 +61,7 @@ def main():
             with sc2:
                 y_axis = st.selectbox(
                     "Select y axis",
-                    options = ["DMA", "Kalman Innovation", "Percentage Retracement", "Second Order Percentage Retracement",
+                    options = ["DMA", "Kalman Innovation","First Order Kalman", "Second Order Kalman", "Percentage Retracement", "Second Order Percentage Retracement",
                     "Second Order DMA", "Lag/Lead Days", "Rolling Alpha", "Lag/Lead Corr"]
                 )
                 if y_axis == "Lag/Lead Days" or y_axis == "Rolling Alpha" or y_axis == "Lag/Lead Corr":
@@ -69,10 +69,20 @@ def main():
                     st.write("Note: Using this may take a while")
         indics.append(y_axis)
         periods.append(y_period)
+    _, b1, _, b3 = st.columns([0.2, 0.2, 0.2, 0.4])
+    with b1:
+        if st.button(":red[Cheap Assets]"):
+            poor()
+    with b3:
+        if st.button(":green[Expensive Assets]"):
+            rich()
+
     try:
         fig, scanner_df = get_fig(tickers, day_delay, indics, periods, [get_range(x_axis) if not (bench_x == "Lag/Lead Days") else periods[0], get_range(y_axis) if not (bench_y == "Lag/Lead Days") else periods[1]], bench_x, bench_y)
-    except TypeError:
+    except:
+        st.write("Please select a benchmark or change axes")
         return
+
     st.plotly_chart(fig)
 
     if not scanner_df.empty:

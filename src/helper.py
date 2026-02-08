@@ -369,5 +369,31 @@ def get_polygon_data(ticker, days_back=730):
 def get_range(indic):
     return RANGES[indic]
 
+@st.dialog("Meaning of an Expensive Asset")
+def rich():
+    st.write("An asset is 'rich', 'expensive', or 'overbought' when it is trading at a premium, usually above its average. " +
+    "These assets are usually found in the upper right quadrant of the plot and can have different " +
+    "implications depending on the feature chosen and strategy. \n\n" + 
+    "Mean reverting thesis: This perspective sees these assets as stretched and overvalued. " +
+    "With the current premium being unsustainable, these assets are bound for a correction back towards " + 
+    "the mean.\n\n" + 
+    "Action: Short the leaders, cover when they start fading. \n\n" + 
+    "Momentum Perspective: The premium is justified and is a signal that the stock will continue riding " +
+    "up until it starts fading. \n\n" +
+    "Action: Buy the leaders, sell when they start fading")
+
+@st.dialog("Meaning of a Cheap Asset")
+def poor():
+    st.write("An asset is 'poor', 'cheap', or 'oversold' when it is trading at a discount, usually below its average. " +
+    "These assets are usually found in the lower left quadrant of the plot and can have different " +
+    "implications depending on the feature chosen and strategy. \n\n" + 
+    "Mean reverting thesis: This perspective sees these assets as undervalued and irrationally beaten down. " +
+    "With the current discount being unsustainable, these assets are bound for a bounce back towards " + 
+    "the mean.\n\n" + 
+    "Action: Buy the laggards, sell when they start recovering. \n\n" + 
+    "Momentum Perspective: The discount is justified and is a signal that the stock is weak and will continue " +
+    "sliding down until it finds a floor. \n\n" +
+    "Action: Short the laggards, cover when they start recovering.")
+
 if __name__ == "__main__":
     get_data()

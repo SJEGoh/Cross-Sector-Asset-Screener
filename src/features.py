@@ -77,7 +77,7 @@ def get_rolling_retrac(data, period=14, raw=False):
     return pd.Series(full_result, index=data.index)
 
 def kalman_first(data, period = 10):
-    data = data.dropna().tail(period * 2) 
+    original_index = data.index
     
     data["pct_change"] = data["Close"].pct_change()
     data = data.dropna()
@@ -111,15 +111,14 @@ def kalman_first(data, period = 10):
     
         smoothed_innovations.append(x[0][0])
     
-    innovations_series = pd.Series(smoothed_innovations)
+    innovations_series = pd.Series(smoothed_innovations, index=df.index)
 
     z_scores = (innovations_series - innovations_series.rolling(period).mean()) / innovations_series.rolling(period).std()
-
-    return z_scores.fillna(0).tail(10)
+    return z_scores.reindex(original_index).fillna(0)
 
 # kalman innovation
 def get_smoothed(data, period = 10):
-    data = data.dropna().tail(period * 2) 
+    original_index = data.index
     
     data["pct_change"] = data["Close"].pct_change()
     data = data.dropna()
@@ -153,16 +152,15 @@ def get_smoothed(data, period = 10):
     
         smoothed_innovations.append(y[0][0])
     
-    innovations_series = pd.Series(smoothed_innovations)
+    innovations_series = pd.Series(smoothed_innovations, index=df.index)
 
     z_scores = (innovations_series - innovations_series.rolling(period).mean()) / innovations_series.rolling(period).std()
-
-    return z_scores.fillna(0).tail(10)
+    return z_scores.reindex(original_index).fillna(0)
 
 
 # Second order 
 def kalman_second(data, period = 10):
-    data = data.dropna().tail(period * 2) 
+    original_index = data.index
     
     data["pct_change"] = data["Close"].pct_change()
     data = data.dropna()
@@ -196,11 +194,10 @@ def kalman_second(data, period = 10):
     
         smoothed_innovations.append(x[1][0])
     
-    innovations_series = pd.Series(smoothed_innovations)
+    innovations_series = pd.Series(smoothed_innovations, index=df.index)
 
     z_scores = (innovations_series - innovations_series.rolling(period).mean()) / innovations_series.rolling(period).std()
-
-    return z_scores.fillna(0).tail(10)
+    return z_scores.reindex(original_index).fillna(0)
 
 
 
