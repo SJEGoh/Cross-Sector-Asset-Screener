@@ -79,6 +79,8 @@ def main():
 
     try:
         fig, scanner_df = get_fig(tickers, day_delay, indics, periods, [get_range(x_axis) if not (bench_x == "Lag/Lead Days") else periods[0], get_range(y_axis) if not (bench_y == "Lag/Lead Days") else periods[1]], bench_x, bench_y)
+        scanner_df["Signal Strength"] = scanner_df["Signal Strength"].map(lambda x: f"{x:.1f}")
+        scanner_df["Volume (Z)"] = scanner_df["Volume (Z)"].map(lambda x: f"{x:.1f}")
     except:
         st.write("Please select a benchmark or change axes")
         return
