@@ -111,7 +111,7 @@ def kalman_first(data, period = 10):
     
         smoothed_innovations.append(x[0][0])
     
-    innovations_series = pd.Series(smoothed_innovations, index=df.index)
+    innovations_series = pd.Series(smoothed_innovations, index=data.index)
 
     z_scores = (innovations_series - innovations_series.rolling(period).mean()) / innovations_series.rolling(period).std()
     return z_scores.reindex(original_index).fillna(0)
@@ -152,7 +152,7 @@ def get_smoothed(data, period = 10):
     
         smoothed_innovations.append(y[0][0])
     
-    innovations_series = pd.Series(smoothed_innovations, index=df.index)
+    innovations_series = pd.Series(smoothed_innovations, index=data.index)
 
     z_scores = (innovations_series - innovations_series.rolling(period).mean()) / innovations_series.rolling(period).std()
     return z_scores.reindex(original_index).fillna(0)
@@ -194,7 +194,7 @@ def kalman_second(data, period = 10):
     
         smoothed_innovations.append(x[1][0])
     
-    innovations_series = pd.Series(smoothed_innovations, index=df.index)
+    innovations_series = pd.Series(smoothed_innovations, index=data.index)
 
     z_scores = (innovations_series - innovations_series.rolling(period).mean()) / innovations_series.rolling(period).std()
     return z_scores.reindex(original_index).fillna(0)

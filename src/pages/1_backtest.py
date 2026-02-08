@@ -112,26 +112,23 @@ def main():
                     return get_indic(indic)(df[["Close"]], aligned_bench[["Close"]], 20)
                 return get_indic(indic)(df[["Close"]], 20)
 
-            # Calculate the 4 columns needed
-            try:
-                # Handle Series vs DataFrame return types
-                def extract_series(res):
-                    if isinstance(res, pd.DataFrame): return res.iloc[:, -1]
-                    return res
+        # Calculate the 4 columns needed
 
-                df['Buy_Ind'] = extract_series(get_signal_data(buy_indic, buy_bench if 'buy_bench' in locals() else None))
-                df['Exit_Buy_Ind'] = extract_series(get_signal_data(close_buy_indic, close_buy_bench if 'close_buy_bench' in locals() else None))
-                
-                df['Sell_Ind'] = extract_series(get_signal_data(sell_indic, sell_bench if 'sell_bench' in locals() else None))
-                df['Exit_Sell_Ind'] = extract_series(get_signal_data(close_sell_indic, close_sell_bench if 'close_sell_bench' in locals() else None))
-                df = df.iloc[-length:]
-                print(df)
-                status.write(f"Simulation running on {length} days.")
-                status.update(label="Complete", state="complete", expanded=False)
-                
-            except Exception as e:
-                status.error(f"Calculation Error: {e}")
-                st.stop()
+            # Handle Series vs DataFrame return types
+            def extract_series(res):
+                if isinstance(res, pd.DataFrame): return res.iloc[:, -1]
+                return res
+
+            df['Buy_Ind'] = extract_series(get_signal_data(buy_indic, buy_bench if 'buy_bench' in locals() else None))
+            df['Exit_Buy_Ind'] = extract_series(get_signal_data(close_buy_indic, close_buy_bench if 'close_buy_bench' in locals() else None))
+            
+            df['Sell_Ind'] = extract_series(get_signal_data(sell_indic, sell_bench if 'sell_bench' in locals() else None))
+            df['Exit_Sell_Ind'] = extract_series(get_signal_data(close_sell_indic, close_sell_bench if 'close_sell_bench' in locals() else None))
+            df = df.iloc[-length:]
+            print(df)
+            status.write(f"Simulation running on {length} days.")
+            status.update(label="Complete", state="complete", expanded=False)
+
 
         # 3. RUN SIMULATION LOOP
         port = SignalPortfolio(initial_cash=10000)
