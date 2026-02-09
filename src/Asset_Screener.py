@@ -108,12 +108,12 @@ def main():
             # 3. (Optional) Show the Turning Points (Buy/Sell signals) below
             c3, c4 = st.columns(2)
             with c3:
-                st.info("Uptrend")
+                st.info("Accelerating")
                 top_y = top_y[["Ticker", "Signal_x", "Volume (Z)"]]
                 top_y.columns = ["Ticker", "Z-score", "Volume (Z)"]
                 st.dataframe(top_y.head(10)[["Ticker", "Z-score", "Volume (Z)"]].style.format({"Z-score": "{:.1f}"}), hide_index=True, width = "stretch")
             with c4:
-                st.warning("Downtrend")
+                st.warning("Decelerating")
                 low_y = low_y[["Ticker", "Signal_x", "Volume (Z)"]]
                 low_y.columns = ["Ticker", "Z-score", "Volume (Z)"]
                 st.dataframe(low_y.head(10)[["Ticker", "Z-score", "Volume (Z)"]].style.format({"Z-score": "{:.1f}"}), hide_index=True, width = "stretch")
