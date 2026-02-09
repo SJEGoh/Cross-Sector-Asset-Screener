@@ -4,6 +4,9 @@ import streamlit as st
 from datetime import date, timedelta
 from polygon import RESTClient
 from dotenv import load_dotenv
+from features import get_indic
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import os
 
 UNIVERSE = {
@@ -394,6 +397,64 @@ def poor():
     "Momentum Perspective: The discount is justified and is a signal that the stock is weak and will continue " +
     "sliding down until it finds a floor. \n\n" +
     "Action: Short the laggards, cover when they start recovering.")
+
+def get_scatter(ticker, feature, period, visual_period):
+    prices = get_polygon_data(ticker)
+
+    data = get_indic(feature)(prices, period)
+    data = pd.DataFrame(data)
+    data.columns = ["indic"]
+
+    data = data.join(prices, how = "inner", on = "Date")
+    data["indic"] = data["indic"].shift(1)
+    data = data.iloc[-visual_period:]
+    
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                        vertical_spacing=0.05, row_heights=[0.5, 0.5])
+
+    # --- TOP CHART: PRICE ---
+    fig.add_trace(go.Scatter(
+        x=data.index, 
+        y=data['Close'],
+        name='Price',
+        line=dict(color='#00F0FF', width=2),
+    ), row=1, col=1)
+
+    fig.add_trace(go.Scatter(
+        x=data.index, 
+        y=data['indic'],
+        name='Distance from DMA',
+    ), row=2, col=1)
+
+    # --- ADD THRESHOLD LINES (The "Signal" Zones) ---
+    # +2.0 Line (Expensive)
+    if feature == "DMA":
+        fig.add_hline(y=2.0, line_dash="dot", line_color="#FF4B4B", row=2, col=1, 
+                    annotation_text="Expensive (+2σ)", annotation_position="top right")
+
+        # -2.0 Line (Cheap)
+        fig.add_hline(y=-2.0, line_dash="dot", line_color="#00FF00", row=2, col=1, 
+                    annotation_text="Cheap (-2σ)", annotation_position="bottom right")
+    else:
+        fig.add_hline(y=2.0, line_dash="dot", line_color="#FF4B4B", row=2, col=1, 
+            annotation_text="Overbought (+2σ)", annotation_position="top right")
+
+        # -2.0 Line (Cheap)
+        fig.add_hline(y=-2.0, line_dash="dot", line_color="#00FF00", row=2, col=1, 
+                    annotation_text="Oversold (-2σ)", annotation_position="bottom right")
+
+    # --- STYLING (Dark Mode) ---
+    fig.update_layout(
+        hoversubplots="axis",
+        title='Price vs. Indicator',
+        height=600,
+        template="plotly_dark", # Professional dark theme
+        showlegend=False,
+        margin=dict(l=20, r=20, t=50, b=20),
+        hovermode="x unified",
+    )
+
+    return fig
 
 if __name__ == "__main__":
     get_data()

@@ -165,7 +165,7 @@ def kalman_second(data, period = 10):
     data["pct_change"] = data["Close"].pct_change()
     data = data.dropna()
     
-    q = 0.05
+    q = 1.0/(period**2)
     r = 1.0
 
     if data.empty:

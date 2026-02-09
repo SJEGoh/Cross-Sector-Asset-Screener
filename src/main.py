@@ -109,7 +109,7 @@ def get_fig(tickers, day_delay, indics, periods, chart_range, bench_x, bench_y):
                 print(f"Error calculating X-axis for {ticker}: {e}")
                 continue
         else:
-                    all_y.append(y_val := get_indic(indics[1])(data[["Close"]], periods[1]).iloc[-1 * (day_delay + 1)])
+            all_y.append(y_val := get_indic(indics[1])(data[["Close"]], periods[1]).iloc[-1 * (day_delay + 1)])
 
 
         all_volumes.append(vol_val := get_volume(data).iloc[-1 * (day_delay + 1)]) 
@@ -216,7 +216,24 @@ def get_fig(tickers, day_delay, indics, periods, chart_range, bench_x, bench_y):
                 xanchor="left",
                 yanchor="top"
             ),
-        ]    
+        ],
+        annotations=[
+            # TOP LEFT: Improving
+            dict(x=0.1, y=0.9, xref="paper", yref="paper", text="<b>IMPROVING</b>", 
+                 showarrow=False, font=dict(size=40, color="rgba(255, 255, 255, 0.4)")),
+            
+            # TOP RIGHT: Leading
+            dict(x=0.9, y=0.9, xref="paper", yref="paper", text="<b>LEADERS</b>", 
+                 showarrow=False, font=dict(size=40, color="rgba(0, 255, 0, 0.4)")),
+            
+            # BOTTOM RIGHT: Weakening
+            dict(x=0.9, y=0.1, xref="paper", yref="paper", text="<b>FADING</b>", 
+                 showarrow=False, font=dict(size=40, color="rgba(255, 165, 0, 0.4)")),
+            
+            # BOTTOM LEFT: Lagging
+            dict(x=0.1, y=0.1, xref="paper", yref="paper", text="<b>LAGGARDS</b>", 
+                 showarrow=False, font=dict(size=40, color="rgba(255, 0, 0, 0.4)"))
+        ]  
     )
     df = pd.DataFrame(scanner_data)
     if not df.empty:
