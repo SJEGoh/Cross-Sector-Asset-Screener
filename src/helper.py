@@ -204,7 +204,7 @@ UNIVERSE = {
 
 RANGES = {
     # First order
-    "DMA": 3,
+    "Distance from DMA": 3,
     "First Order Kalman": 3,
     "Kalman Innovation": 3,
     "Percentage Retracement": 1,
@@ -428,7 +428,7 @@ def get_scatter(ticker, feature, period, visual_period):
 
     # --- ADD THRESHOLD LINES (The "Signal" Zones) ---
     # +2.0 Line (Expensive)
-    if feature == "DMA":
+    if feature == "Distance from DMA":
         fig.add_hline(y=2.0, line_dash="dot", line_color="#FF4B4B", row=2, col=1, 
                     annotation_text="Expensive (+2σ)", annotation_position="top right")
 

@@ -23,7 +23,7 @@ def get_master_data(tickers):
             
     return master_dict
 
-def get_fig(tickers, day_delay, indics, periods, chart_range, bench_x, bench_y):
+def get_fig(tickers, day_delay, indics, periods, chart_range, bench_x = None, bench_y = None):
     fig = go.Figure()
     all_x = []
     all_y = []
@@ -139,7 +139,8 @@ def get_fig(tickers, day_delay, indics, periods, chart_range, bench_x, bench_y):
         scanner_data.append({
             "Ticker": ticker,
             "Quadrant": quadrant,
-            "Signal Strength": float(strength), # ensure float for sorting
+            "Signal_y": float(y_val), # ensure float for sorting
+            "Signal_x": float(x_val),
             "Valuation (X)": float(x_val),
             "Momentum (Y)": float(y_val),
             "Volume (Z)": float(vol_val),
@@ -236,7 +237,5 @@ def get_fig(tickers, day_delay, indics, periods, chart_range, bench_x, bench_y):
         ]  
     )
     df = pd.DataFrame(scanner_data)
-    if not df.empty:
-        df = df.sort_values(by="Signal Strength", ascending=False)
 
     return fig, df

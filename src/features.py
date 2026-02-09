@@ -280,7 +280,7 @@ def get_lag_corr(data, benchmark, period=20):
 
 def get_indic(indic):
     # First order
-    if indic == "DMA":
+    if indic == "Distance from DMA":
         return get_dma
     if indic == "First Order Kalman":
         return kalman_first
